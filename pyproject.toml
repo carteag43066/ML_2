@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "machine_learning_ii"
+version = "0.1.0"
+description = "Curso de Machine Learning II"
+authors = ["carteag43066 <carteag43066@universidadean.edu.co>"]
+license = "MIT"
+package-mode = false
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.10,<3.12"
+torch = "~2.2.0"
+torchvision = "*"
+torchaudio = "*"
+pandas = "*"
+numpy = "*"
+matplotlib = "*"
+scikit-learn = "*"
+jupyterlab = "*"
+ipykernel = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
