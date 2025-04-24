@@ -19,6 +19,7 @@ scikit-learn = "*"
 jupyterlab = "*"
 ipykernel = "*"
 scikit-image = "^0.25.2"
+imblearn = "^0.0"
 
 [build-system]
 requires = ["poetry-core"]
