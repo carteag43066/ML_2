@@ -1,0 +1,534 @@
+---
+title: "Presentación 5: Redes Neuronales"
+subtitle: "*Machine Learning II*"
+author: "Jose Alexander Fuentes Montoya Ph.D(c)"
+format:
+  revealjs:
+    theme: "moon"
+    slideNumber: true
+    transition: "convex"            # Transición más dinámica
+    center: false
+    incremental: true
+    plugins: ["notes", "highlight", "math", "search", "zoom"]  # Plugins para interactividad
+    backgroundTransition: "fade"
+title-slide-attributes:
+  data-background-image: "logo.png"
+  data-background-size: "10%"
+  data-background-position: "90% 10%"
+---
+
+```{r}
+
+reticulate::use_condaenv("r-tf", required = TRUE)
+```
+
+
+# Redes Neuronales
+
+# Visión general de la lección
+
+-  **Tensores en aprendizaje profundo**  
+-  **Tensores y PyTorch**  
+-  **Vectores, matrices y broadcasting**  
+-  **Convenciones de notación para redes neuronales**  
+-  **Capa totalmente conectada (lineal) en PyTorch**  
+
+
+# Tensores en aprendizaje profundo
+
+
+## Vectores, matrices y tensores — Convenciones de notación
+
+::: columns
+
+::: {.column width="50%" style="font-size:0.6em"}
+*Rango 0 y 1*
+
+**Escalar**  
+(rank‑0 tensor)  
+$$x \in \mathbb{R}$$ 
+
+**Vector**  
+(rank‑1 tensor)  
+$$x \in \mathbb{R}^n,\quad x\in\mathbb{R}^{n\times1}$$  
+$$
+x = \begin{bmatrix}
+x_1\\
+x_2\\
+\vdots\\
+x_n
+\end{bmatrix}
+$$ 
+
+:::
+
+::: {.column width="50%" style="font-size:0.5em"}
+*Rango 2*
+
+**Matriz**  
+(rank‑2 tensor)  
+$$X \in \mathbb{R}^{m\times n}$$  
+$$
+X = \begin{bmatrix}
+x_{1,1} & x_{1,2} & \dots  & x_{1,n} \\
+x_{2,1} & x_{2,2} & \dots  & x_{2,n} \\
+\vdots  & \vdots  & \ddots & \vdots  \\
+x_{m,1} & x_{m,2} & \dots  & x_{m,n}
+\end{bmatrix}
+$$
+:::
+:::::
+
+<div style="font-size:80%;">
+
+## Vectores, matrices y tensores — Convenciones de notación
+
+$X$ para referirnos a la “matriz de diseño”. Es decir, la matriz que contiene los ejemplos de entrenamiento y las características (entradas).** 
+
+**$$X \in \mathbb{R}^{n\times m}$$** 
+
+**Y asumiremos la siguiente estructura**  
+_(donde $n$ suele emplearse para referirse al número de ejemplos)_ 
+
+$$
+X = \begin{bmatrix}
+x^{(1)}_{1} & x^{(1)}_{2} & \dots  & x^{(1)}_{m} \\[6pt]
+x^{(2)}_{1} & x^{(2)}_{2} & \dots  & x^{(2)}_{m} \\[6pt]
+\vdots      & \vdots      & \ddots & \vdots      \\[6pt]
+x^{(n)}_{1} & x^{(n)}_{2} & \dots  & x^{(n)}_{m}
+\end{bmatrix}
+$$
+</div>
+
+## Tensor 3D
+
+**$X \in \mathbb{R}^{m\times n\times p}$** 
+
+Se suele pensar como $p$ “rebanadas” de tamaño $m\times n$:  
+
+![Figura 5-1. Tensor 3D](presentacion_files/41.png)
+
+## Tensor 3D imagen
+
+![Tensor 3D ](presentacion_files/42.png)
+
+- **Imagen de un solo canal**  
+- **Tensor 3D**: alto × ancho × canales  
+- Usado para almacenamiento de arreglos multidimensionales y cómputo paralelo  
+- Seguimos aplicando operaciones de vectores y matrices  
+
+<div style="font-size:70%;">
+## Ejemplo tensor 4D
+
+![Figura 5-2. Lote de imágenes (CIFAR-10)](presentacion_files/43.png){width="150%"}
+
+
+- **Tensor 4D**:  
+  `batch_size` × `alto` × `ancho` × `canales`
+
+- Uso: almacenamiento de arreglos multidimensionales  
+  y cómputo paralelo, aplicando operaciones de vectores  
+  y matrices de manera eficiente.
+
+</div>
+
+## En el contexto de TensorFlow, NumPy y PyTorch
+
+-  **Tensores = arreglos multidimensionales**
+-  **La dimensionalidad coincide con el número de índices de** `.shape`
+
+```{python}
+#| echo: true
+import torch
+import numpy as np
+
+t = torch.tensor([[1,2,3],[4,5,6]])
+print(t)
+print(t.shape)
+print(t.ndim)
+```
+
+---
+
+![Figura 5-3. Image source: Stevens et al.'s "Deep Learning with PyTorch"](presentacion_files/44.png){width="120%"}
+
+# Tensores y PyTorch
+
+## Arreglos y Tensores Multidimensional
+
+-  `numpy.array` / `numpy.ndarray` = estructura de datos que representa un tensor  
+-  `pytorch.tensor` / `torch.Tensor` = estructura de datos que representa un tensor 
+
+
+## Ejemplo
+
+```{python}
+#| echo: true
+a = np.array([1.,2.,3.])
+print(a.dtype)
+print(a.shape)
+
+
+# Definimos un vector de pesos
+b = torch.tensor([1., 2., 3.])
+print(b.dtype)
+print(b.shape)
+
+```
+
+
+
+
+## NumPy and PyTorch Similar sintaxis
+
+
+```{python}
+#| echo: true
+print(a.dot(a))
+print(b.matmul(b))
+print(b)
+b.numpy()
+print(b.dot(b))
+print(b.matmul(b))
+print(b @ b)
+
+```
+
+<div style="font-size:72%;">
+
+## Tipos de datos y memoria
+
+
+| **NumPy**             | **Tensor (PyTorch)**    |
+|-----------------------|-------------------------|
+| `numpy.uint8`         | `torch.ByteTensor`      |
+| `numpy.int16`         | `torch.ShortTensor`     |
+| `numpy.int32`         | `torch.IntTensor`       |
+| `numpy.int`           | `torch.LongTensor`      |
+| `numpy.int64`         | `torch.LongTensor`      |
+| `numpy.float16`       | `torch.HalfTensor`      |
+| `numpy.float32`       | `torch.FloatTensor`     |
+| `numpy.float`         | `torch.DoubleTensor`    |
+| `numpy.float64`       | `torch.DoubleTensor`    |
+
+-  Por defecto en PyTorch se usa **`float32`**  
+-  Por defecto en NumPy se usa **`float64`**  
+-  Para GPU, **`float32`** suele ofrecer un buen rendimiento sin pérdida significativa de precisión
+
+</div>
+
+
+<div style="font-size:75%;">
+## ¿Por qué no usar solo NumPy?
+
+-  **PyTorch ofrece soporte de GPU** 
+
+  1. Podemos cargar los datos y los parámetros del modelo en la memoria de la GPU.  
+  2. En la GPU se logra mayor paralelismo para computar múltiples multiplicaciones de matrices.
+
+-  **Autodiferenciación automática**, esencial para el entrenamiento de redes neuronales.
+
+-  **Funciones de conveniencia para Deep Learning**, como capas predefinidas, optimizadores y transformaciones.  
+
+</div>
+
+## Cargar datos en la GPU es fácil
+
+```{python}
+#| echo: true
+import torch
+
+#import torch
+
+# Verificar disponibilidad de CUDA
+cuda_available = torch.cuda.is_available()
+print("CUDA disponible:", cuda_available)      # False si PyTorch no incluye soporte CUDA
+
+# Elegir dispositivo según disponibilidad
+device = torch.device("cuda:0" if cuda_available else "cpu")
+
+# Crear tensor de ejemplo
+b = torch.tensor([1.0, 2.0, 3.0])
+
+# Mover tensor al dispositivo seleccionado
+b = b.to(device)
+print("Tensor en dispositivo:", b)
+
+```
+
+# Difusión de semántica: cómo hacer que los cálculos vectoriales y matriciales sean más convenientes
+
+<div style="font-size:72%;">
+
+## Vectores, matrices y broadcasting
+
+**Operaciones básicas con vectores**  
+- Adición y sustracción  
+- Producto interno (por ejemplo, producto punto)  
+- Multiplicación por escalar :contentReference[oaicite:0]{index=0}&#8203;:contentReference[oaicite:1]{index=1}
+
+**Notación de vectores**  
+$$
+x = \begin{bmatrix}
+x_1 \\[4pt]
+x_2 \\[4pt]
+\vdots \\[4pt]
+x_m
+\end{bmatrix}
+\in \mathbb{R}^{m\times1}, \quad
+w = \begin{bmatrix}
+w_1 \\[4pt]
+w_2 \\[4pt]
+\vdots \\[4pt]
+w_m
+\end{bmatrix}
+\in \mathbb{R}^{m\times1}
+$$ 
+
+**Capa lineal (perceptrón)**  
+$$
+z = w^\top x + b
+$$
+</div>
+
+## En PyTorch (o TensorFlow, NumPy, etc.) los tensores son arreglos extendidos:
+
+```{python}
+#| echo: true
+
+a = torch.tensor([1, 2, 3])
+b = torch.tensor([4, 5, 6])
+a * b
+torch.tensor([1, 2, 3]) + 1
+```
+
+Aunque estas estructuras no coinciden con la definición matemática de un tensor (entidad multilineal), resultan muy útiles para el cómputo numérico. 
+
+
+## Computando la salida para múltiples ejemplos a la vez
+
+Planteamos:
+$$
+\mathbf{z} =
+\begin{bmatrix}
+w^T x^{(1)} + b \\[6pt]
+w^T x^{(2)} + b \\[6pt]
+\vdots \\[6pt]
+w^T x^{(n)} + b
+\end{bmatrix}
+=
+\begin{bmatrix}
+z^{(1)} \\[6pt]
+z^{(2)} \\[6pt]
+\vdots \\[6pt]
+z^{(n)}
+\end{bmatrix}
+$$
+
+---
+
+**Pista:**  
+¡Esto no es simplemente un vector escalar, sino que corresponde a  
+$$\mathbf{z} = Xw + b$$  
+donde $X \in \mathbb{R}^{n\times m}$ es la matriz de diseño y $b$ se suma a cada fila. 
+
+## Broadcasting
+
+-  Permite operaciones elemento‑a‑elemento entre tensores de formas distintas.
+
+-  Muy útil para agregar bias, escalas u otras constantes.
+
+-  Esta característica se conoce como *broadcasting*.
+
+---
+
+::::: {.columns style="font-size:105%;" }
+::: {.column width="50%"}
+
+
+
+```{python}
+#| echo: true
+print(torch.tensor([1, 2, 3]) + 1)
+t = torch.tensor([[4, 5, 6],
+                  [7, 8, 9]])
+print(t)
+print(t + torch.tensor([1, 2, 3]))
+
+```
+
+:::
+
+::: {.column width="50%"}
+![Figura 5-4.](presentacion_files/45.png)
+:::
+:::::
+
+# Convenciones de notación para redes neuronales
+
+## Conexiones que ya hemos visto…
+
+::: columns
+
+::: {.column width="50%" style="font-size:0.8em"}
+
+La entrada neta al perceptrón se calcula como:  
+$$
+z \;=\; w^\top x \;+\; b
+$$
+
+- $x\in\mathbb{R}^{m}$: vector de características  
+- $w\in\mathbb{R}^{m}$: vector de pesos  
+- $b\in\mathbb{R}$: sesgo (bias)  
+:::
+
+::: {.column width="50%" style="font-size:0.8em"}
+*Operación en lote (n ejemplos)*
+
+Para procesar $n$ ejemplos a la vez, usamos:  
+$$
+\mathbf{z} \;=\; X\,w \;+\; b
+$$
+
+- $X\in\mathbb{R}^{n\times m}$: matriz de diseño (cada fila es un ejemplo)  
+- $\mathbf{z}\in\mathbb{R}^{n}$: vector de salidas para cada ejemplo  
+- $b$ se suma a cada entrada por **broadcasting**  
+:::
+
+:::
+
+
+## Una capa totalmente conectada
+
+![](presentacion_files/46.png)
+
+---
+
+![](presentacion_files/47.png)
+# Capa totalmente conectada (lineal) en PyTorch
+
+##  Capa totalmente conectada en PyTorch
+
+```{python}
+#| echo: true
+import torch
+X=torch.arange(50,dtype=torch.float).view(10,5)
+X
+fc_layer=torch.nn.Linear(in_features=5,out_features=3)
+fc_layer.weight
+fc_layer.bias
+```
+
+---
+
+```{python}
+#| echo: true
+print('X dim:',X.size())
+print('W dim:',fc_layer.weight.size())
+print('b dim:',fc_layer.bias.size())
+A=fc_layer(X)
+print('A:',A)
+print('A dim:',A.size())
+```
+
+
+# Conclusiones
+
+
+<div style="font-size:80%;">
+
+## Tener en cuenta
+
+- Piensa siempre en **cómo** se computan los productos punto al escribir e implementar la multiplicación de matrices.  
+- La intuición teórica y la convención no siempre coinciden con la conveniencia práctica (codificación).  
+- Al cambiar entre teoría y código, estas reglas pueden ser muy útiles:  
+  $$
+  (AB)^\top \;=\; B^\top\,A^\top
+  $$
+  y
+  
+  $$
+  (AB) \;=\; (B^\top\,A^\top)^\top
+  $$
+
+</div>
+
+<div style="font-size:70%;">
+
+## Resumen: Tradicional vs PyTorch
+
+
+### Tradicional
+
+- **1 ejemplo**  
+  $$
+  a = \sigma\bigl(W\,x + b\bigr),\quad
+  W\in\mathbb{R}^{h\times m},\;
+  x\in\mathbb{R}^{m\times1},\;
+  b\in\mathbb{R}^{h\times1},\;
+  a\in\mathbb{R}^{h\times1}
+  $$
+
+- **n ejemplos**  
+  $$
+  A = \sigma\bigl(W\,X + b\bigr),\quad
+  X\in\mathbb{R}^{m\times n},\;
+  b\in\mathbb{R}^{h\times1},\;
+  A\in\mathbb{R}^{h\times n}
+  $$
+
+### PyTorch
+
+- **1 ejemplo**  
+  $$
+  a = \sigma\bigl(x\,W^{\!\top} + b\bigr),\quad
+  x\in\mathbb{R}^{1\times m},\;
+  W\in\mathbb{R}^{h\times m},\;
+  b\in\mathbb{R}^{1\times h},\;
+  a\in\mathbb{R}^{1\times h}
+  $$
+
+- **n ejemplos**  
+  $$
+  A = \sigma\bigl(X\,W^{\!\top} + b\bigr),\quad
+  X\in\mathbb{R}^{n\times m},\;
+  b\in\mathbb{R}^{1\times h},\;
+  A\in\mathbb{R}^{n\times h}
+  $$
+</div>
+
+<div style="font-size:80%;">
+# Actividad 1
+
+Revisa el código del perceptrón en NumPy:  
+[perceptron-numpy.ipynb](https://colab.research.google.com/drive/1bC3Kmh0yd8rRD2z4sh_HigsqWjQIULZJ?authuser=1#scrollTo=Kxae08vQVVKz)
+
+[perceptron-pytorch.ipynb](https://colab.research.google.com/drive/1vwk4kgmO1oQqfQiDPWyLDTiSiQsa-ecT?authuser=1#scrollTo=h4hOy38vXJep)
+
+1. **Sin ejecutar** el código, ¿puede el perceptrón predecir las etiquetas si le pasamos un arreglo de **múltiples** ejemplos a la vez (método `forward`)?  
+   - Si la respuesta es **sí**, ¿por qué?  
+   - Si la respuesta es **no**, ¿qué cambio habría que hacer?  
+2. **Ejecuta** el código y comprueba tu intuición.  
+3. ¿Y el método `train`? ¿Podemos usar paralelismo con multiplicación de matrices sin afectar la regla de aprendizaje del perceptrón?  
+
+</div>
+
+
+# Referencias
+
+::: {style="font-size:80%;"}
+1.  Definición informal de ML.\
+2.  Definición de IA.\
+3.  Definición formal de ML (Tom Mitchell).\
+4.  Minsky, M. & Papert, S. (1969). *Perceptrons*. MIT Press.\
+5.  Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). *Learning representations by back-propagating errors*. Nature, 323(6088), 533–536.\
+6.  LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). *Gradient-based learning applied to document recognition*. Proceedings of the IEEE, 86(11), 2278–2324.\
+7.  Hubel, D. H., & Wiesel, T. N. (1962). *Receptive fields, binocular interaction and functional architecture in the cat's visual cortex*. Journal of Physiology, 160, 106–154.\
+8.  Krizhevsky, A., Sutskever, I., & Hinton, G. E. (2012). *ImageNet classification with deep convolutional neural networks*. NeurIPS.\
+9.  He, K., Zhang, X., Ren, S., & Sun, J. (2016). *Deep residual learning for image recognition*. CVPR.\
+10. Material y figuras extraídos de: *Complemento Capítulo 3: Introduction to Deep Learning* :contentReference[oaicite:6]{index="6"}.
+
+© Harsh Bhasin 2024\
+H. Bhasin, *Hands-on Deep Learning*, [DOI:10.1007/979-8-8688-1035-0_1](https://doi.org/10.1007/979-8-8688-1035-0_1) \`\`\`
+
+:::

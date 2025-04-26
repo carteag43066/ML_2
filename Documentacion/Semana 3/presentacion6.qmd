@@ -1,0 +1,895 @@
+---
+title: "Presentación 6: Redes Neuronales"
+subtitle: "*Machine Learning II*"
+author: "Jose Alexander Fuentes Montoya Ph.D(c)"
+format:
+  revealjs:
+    theme: "moon"
+    slideNumber: true
+    transition: "convex"            # Transición más dinámica
+    center: false
+    incremental: true
+    plugins: ["notes", "highlight", "math", "search", "zoom"]  # Plugins para interactividad
+    backgroundTransition: "fade"
+title-slide-attributes:
+  data-background-image: "logo.png"
+  data-background-size: "10%"
+  data-background-position: "90% 10%"
+---
+
+```{r}
+
+reticulate::use_condaenv("r-tf", required = TRUE)
+```
+
+# Redes Neuronales
+
+<div style="font-size:80%;">
+# Visión general de la lección
+
+1. Regresión logística como neurona artificial  
+2. Pérdida de log-verosimilitud negativa  
+3. Regla de aprendizaje de regresión logística  
+4. Logits y entropía cruzada  
+5. Ejemplo de código de regresión logística (Actividad 2) 
+6. Generalización a múltiples clases: regresión softmax  
+7. Codificación OneHot y entropía cruzada multiclase  
+8. Regla de aprendizaje de regresión softmax  
+9. Ejemplo de código de regresión softmax   
+
+</div>
+
+# Visualización de la regresión logística como una red neuronal de una sola capa
+
+
+## Neurona de Regresión Logistica Regression  para clases binarias $\;y \in \{0, 1\}$
+
+::::: {.columns style="font-size:65%;" }
+::: {.column width="50%"}
+
+- **Recap ADALINE**  
+  - Activación identidad:  
+    $\sigma(z)=z$  
+  - Pérdida MSE:  
+    $\displaystyle\mathrm{MSE}=\frac{1}{n}\sum_i\bigl(a^{(i)}-y^{(i)}\bigr)^2$
+
+- **Ahora**, para regresión logística:  
+  - Activación sigmoide logística:  
+    $\displaystyle a=\sigma(z)=\frac{1}{1+e^{-z}}$  
+  - Usaremos **pérdida de log-verosimilitud negativa** (cross-entropy)
+
+:::
+
+::: {.column width="50%"}
+![Figura 6-1.](presentacion_files/48.png)
+- **Entrada neta**:  
+  $$
+    z = \sum_{i=1}^m w_i\,x_i + b
+  $$
+
+:::
+:::::
+
+## Función sigmoide logística
+
+$$\displaystyle \sigma(z)=\frac{e^{z}}{1+e^{z}}=\frac{1}{1+e^{-z}}$$
+![Figura 6-2. Sigmoide](presentacion_files/26.png){width="40%"}
+
+<div style="font-size:70%;">
+
+## Regresión logística
+
+**Dado el output de la sigmoide**  
+$h(x)=a=\sigma\bigl(w^\top x + b\bigr)$
+
+**Posterior (probabilidad de clase)**:  
+$$
+P\bigl(y \mid x\bigr) =
+\begin{cases}
+h(x), & \text{si } y = 1,\\[6pt]
+1 - h(x), & \text{si } y = 0.
+\end{cases}
+$$
+**Interpretación final:**  
+Para un problema de clases binarias (0 y 1), buscamos que  
+$$
+P(y = 0 \mid x) \approx 1 \quad \text{si } y=0,
+$$  
+$$
+P(y = 1 \mid x) = 1 - P(y=0 \mid x) \approx 1 \quad \text{si } y=1.
+$$  
+Así, $h(x)$ estima directamente $P(y=1 \mid x)$ y $1 - h(x)$ estima $P(y=0 \mid x)$. 
+
+</div>
+
+<div style="font-size:70%;">
+
+# Función de pérdidad Regresión logística
+
+**Dado el output de la sigmoide**  
+$$
+h(x)\;=\;\sigma\bigl(w^\top x + b\bigr)
+$$ 
+
+> Aquí, la “hipótesis” es simplemente el valor de activación:  
+> $$h(x)=a$$
+
+**Posterior (probabilidad condicional de la clase)**  
+$$
+P\bigl(y \mid x\bigr)=
+\begin{cases}
+h(x), & \text{si }y=1,\\[6pt]
+1 - h(x), & \text{si }y=0.
+\end{cases}
+$$
+
+**Forma compacta:**  
+$$
+P\bigl(y \mid x\bigr)
+=\bigl(h(x)\bigr)^{y}\,\bigl(1 - h(x)\bigr)^{\,1 - y}.
+$$
+
+</div>
+
+<div style="font-size:80%;">
+
+## Regresión logística (continuación)
+
+**Para múltiples ejemplos de entrenamiento queremos maximizar:**
+
+$$
+P\bigl(y^{[1]}, \dots, y^{[n]}\mid x^{[1]}, \dots, x^{[n]}\bigr)
+= \prod_{i=1}^n P\bigl(y^{[i]}\mid x^{[i]}\bigr)
+$$ 
+
+buscando los parámetros óptimos.
+
+> Esto corresponde al **Estimador de Máxima Verosimilitud**  
+> (_Maximum Likelihood Estimation_) 
+
+</div>
+
+<div style="font-size:80%;">
+
+## Verosimilitud (Loss)
+
+$$
+L(\mathbf w)
+= P(\mathbf y \mid \mathbf x; \mathbf w)
+= \prod_{i=1}^n P\bigl(y^{(i)} \mid x^{(i)}; \mathbf w\bigr)
+= \prod_{i=1}^n \bigl(\sigma(z^{(i)})\bigr)^{y^{(i)}}\,
+  \bigl(1 - \sigma(z^{(i)})\bigr)^{1 - y^{(i)}}.
+$$
+
+</div>
+
+<div style="font-size:80%;">
+
+## Log-Likelihood (Loss)
+
+Para evitar underflow y lograr estabilidad numérica, maximizamos el logaritmo natural de la verosimilitud:
+
+$$
+\ell(\mathbf w) \;=\;\log L(\mathbf w)
+\;=\;\log\!\Biggl[\prod_{i=1}^n \bigl(\sigma(z^{(i)})\bigr)^{y^{(i)}}\,
+\bigl(1 - \sigma(z^{(i)})\bigr)^{\,1-y^{(i)}}\Biggr]
+$$
+
+Lo que equivale a:
+
+$$
+\ell(\mathbf w)
+=\sum_{i=1}^n \Bigl[y^{(i)}\log\bigl(\sigma(z^{(i)})\bigr)
++(1-y^{(i)})\log\bigl(1-\sigma(z^{(i)})\bigr)\Bigr].
+$$
+
+</div>
+
+<div style="font-size:80%;">
+
+## Pérdida de log-verosimilitud negativa
+
+En la práctica, es más conveniente **minimizar** la log-verosimilitud negativa en lugar de maximizar la log-verosimilitud:
+
+$$
+\mathcal{L}(\mathbf w)
+= -\,\ell(\mathbf w)
+= -\sum_{i=1}^n \Bigl[
+y^{(i)}\log\bigl(\sigma(z^{(i)})\bigr)
++ \bigl(1 - y^{(i)}\bigr)\log\bigl(1 - \sigma(z^{(i)})\bigr)
+\Bigr].
+$$ 
+
+_(En código, a menudo añadimos un factor $1/n$ para mayor comodidad, donde $n$ es el número de ejemplos de entrenamiento o el tamaño del minibatch.)_
+
+</div>
+
+<div style="font-size:80%;">
+
+## Pérdida de regresión logística
+
+-  Así, “hacer regresión logística” es similar a ADALINE, donde minimizábamos la MSE:
+  $$
+  \mathrm{MSE} \;=\;\frac{1}{n}\sum_i\bigl(a^{[i]}-y^{[i]}\bigr)^2
+  $$
+
+-  **Pero** en regresión logística **maximizamos** la verosimilitud.
+
+-  Maximizar la verosimilitud es equivalente a maximizar la log-verosimilitud, que es más estable numéricamente.
+
+-  A su vez, maximizar la log-verosimilitud equivale a **minimizar** la log-verosimilitud negativa, lo cual nos permite seguir usando descenso de gradiente (en lugar de ascenso).
+
+</div>
+
+# Regla de aprendizaje de regresión logística
+
+<div style="font-size:70%;">
+## Derivada de la sigmoide logística
+
+- En redes multicapa, una ventaja de la función sigmoide logística es que tiene derivadas muy sencillas:
+
+$$
+\sigma(z) \;=\;\frac{1}{1+e^{-z}}
+$$
+
+$$
+\frac{d}{dz}\,\sigma(z)
+\;=\;\frac{e^{-z}}{(1+e^{-z})^2}
+\;=\;\sigma(z)\,\bigl(1 - \sigma(z)\bigr)
+$$
+
+::: columns
+
+::: {.column width="40%"}
+![Figura 6-4.Función sigmoide](presentacion_files/49.png){width="90%"}
+:::
+
+::: {.column width="40%"}
+![Figura 6-5. Derivada de la sigmoide](presentacion_files/50.png){width="90%"}
+:::
+
+:::
+
+</div>
+
+
+## Pérdida para un solo ejemplo de entrenamiento
+
+::: columns
+
+::: {.column width="75%"}
+![6-6. Pérdida de un solo ejemplo](presentacion_files/51.png){width="100%"}
+:::
+
+::: {.column width="35%" style="font-size:0.6em"}
+- Si $y=1$: $\;\displaystyle \ell = -\log(\hat y)$, que crece mucho cuando $\hat y$ es pequeño.  
+- Si $y=0$: $\;\displaystyle \ell = -\log(1-\hat y)$, que crece mucho cuando $\hat y$ es cercano a 1.  
+:::
+
+:::
+
+$$
+\mathcal{L}(\mathbf w)
+= -\Bigl[y^{(i)}\log\bigl(\hat y^{(i)}\bigr)
++ \bigl(1 - y^{(i)}\bigr)\log\bigl(1 - \hat y^{(i)}\bigr)\Bigr].
+$$
+
+<div style="font-size:70%;">
+
+## Regla de aprendizaje
+
+Aplicamos la misma regla de descenso por gradiente que antes, donde
+
+$$
+\frac{\partial \mathcal{L}}{\partial w_j}
+= \frac{\partial \mathcal{L}}{\partial a}\;\frac{da}{dz}\;\frac{\partial z}{\partial w_j}.
+$$
+
+Las derivadas parciales son:
+
+$$
+\frac{\partial \mathcal{L}}{\partial a}
+= \frac{a - y}{a \,(1 - a)},
+\qquad
+\frac{da}{dz}
+= \sigma(z)\,\bigl(1 - \sigma(z)\bigr)
+= a\,(1 - a),
+\qquad
+\frac{\partial z}{\partial w_j}
+= x_j.
+$$
+
+Por tanto, la actualización de pesos queda:
+
+$$
+w_j \;\leftarrow\;
+w_j \;-\;\eta\;\frac{\partial \mathcal{L}}{\partial w_j}
+\;=\;
+w_j \;-\;\eta\;(a - y)\,x_j.
+$$
+</div>
+
+<div style="font-size:50%;">
+
+
+## Regla de aprendizaje para regresión logística
+
+**Descenso de gradiente estocástico**
+
+1. **Inicializar**  
+   $$
+   \mathbf w \;\leftarrow\; \mathbf 0\in\mathbb R^m,\quad
+   b \;\leftarrow\; 0
+   $$
+
+2. **Por cada época de entrenamiento**  
+   - Para cada par de entrenamiento $\bigl(\mathbf x^{(i)},y^{(i)}\bigr)$:  
+     1. **Predicción**  
+        $$
+        \hat y^{(i)}
+        \;=\;
+        \sigma\bigl((\mathbf x^{(i)})^\top\mathbf w + b\bigr)
+        $$  
+     2. **Gradientes**  
+        $$
+        \nabla_{\mathbf w}\mathcal L
+        = -\bigl(y^{(i)} - \hat y^{(i)}\bigr)\,\mathbf x^{(i)},
+        \quad
+        \nabla_{b}\mathcal L
+        = -\bigl(y^{(i)} - \hat y^{(i)}\bigr)
+        $$  
+        
+     3. **Actualizar parámetros** ($\eta$: tasa de aprendizaje)  
+        $$
+        \mathbf w \;\leftarrow\;\mathbf w - \eta\,\nabla_{\mathbf w}\mathcal L,
+        \quad
+        b \;\leftarrow\; b - \eta\,\nabla_{b}\mathcal L
+        $$
+
+> **Nota:**  
+> $\;a - y\;$ equivale a $-\bigl(y^{(i)} - \hat y^{(i)}\bigr)$,  
+> de modo que la corrección en cada parámetro es proporcional al **gradiente negativo**.  
+
+</div>
+
+## Predicción de etiquetas de clase con regresión logística
+
+::: columns
+
+::: {.column width="40%" style="font-size:0.7em"}
+![6-7. Flujo de predicción de etiqueta](presentacion_files/52.png){width="100%"}
+En regresión logística podemos definir la etiqueta predicha como:
+$$
+\hat y =
+\begin{cases}
+1, & \text{si }\sigma(z)>0.5,\\[6pt]
+0, & \text{en otro caso,}
+\end{cases}
+$$
+:::
+
+::: {.column width="60%" style="font-size:0.65em"}
+
+lo cual es equivalente a:
+$$
+\hat y =
+\begin{cases}
+1, & \text{si }z>0,\\[6pt]
+0, & \text{en otro caso.}
+\end{cases}
+$$
+
+- Esta conversión a etiqueta (“output”) se considera un bloque separado que no interviene en el entrenamiento.  
+- Las etiquetas predichas no se usan durante la optimización (salvo en el perceptrón clásico).  
+- ADALINE, regresión logística y las redes multicapa no utilizan una función umbral para entrenar, ya que no es diferenciable.  
+:::
+
+:::
+
+# Logits y entropía cruzada
+
+<div style="font-size:70%;">
+
+## Sobre el término “Logits"
+
+- En Deep Learning, los **logits** son las **entradas netas** ('net inputs') de la última capa de la red.  
+- En estadística, llamamos **log-odds** a los **logits**.  
+- En regresión logística, los logits son naturalmente  
+  $$
+  z = \mathbf w^\top \mathbf x
+  $$
+  porque el **log-odds** es el logaritmo de las probabilidades de “éxito” vs “fracaso”:  
+  $$
+  \log\!\frac{p}{1-p}.
+  $$
+- Dicho de otro modo, los **logits** son la función inversa de la sigmoide logística.
+
+</div>
+
+---
+
+![6-7. ](presentacion_files/53.png){width="100%"}
+
+<div style="font-size:70%;">
+
+## Sobre el término “Entropía cruzada binaria"
+
+- La **log-verosimilitud negativa** y la **entropía cruzada binaria** son equivalentes.  
+- Solo varían en el contexto de formulación: estadístico vs teoría de la información.  
+- La entropía cruzada surge de la **teoría de la información** (informática).  
+
+
+**Entropía cruzada binaria**  
+$$
+H_a(y)
+= -\sum_{i}\Bigl[y^{(i)}\log\bigl(a^{(i)}\bigr)
++ (1 - y^{(i)})\log\bigl(1 - a^{(i)}\bigr)\Bigr]
+$$
+
+**Entropía cruzada multiclase** (para \(K\) categorías)  
+$$
+H_a(y)
+= -\sum_{i=1}^n\sum_{k=1}^K y_k^{(i)}\;\log\bigl(a_k^{(i)}\bigr)
+$$
+
+</div>
+
+# Ejemplo de código de regresión logística (Actividad 2) 
+
+1. Explicar el siguiente código
+
+[logistic-regression.ipynb](https://colab.research.google.com/drive/1h6Nv4765Li6MD8rn_cAosX2gSmd3CfpG?authuser=1#scrollTo=e8UCKY7u8XUL)
+
+# Generalización a múltiples clases: regresión softmax
+
+## Otra aproximación podría ser…
+
+::: columns
+
+::: {.column width="40%"}
+![6-8. Neuronas sigmoide por clase](presentacion_files/54.png){width="100%"}
+:::
+
+::: {.column width="60%" style="font-size:0.9em"}
+- Cada salida $a_k$ se calcula con su propio perceptrón sigmoide:
+  $$
+    z_k = \sum_{i=1}^m w_{k,i}\,x_i + b,\quad
+    a_k = \sigma(z_k).
+  $$
+- Las activaciones $a_k$ se interpretan como **probabilidades de pertenencia a cada clase**,  
+  pero **no** suman 1 (clases no mutuamente excluyentes).  
+:::
+
+:::
+
+---
+
+**Vectorización**:  
+$$
+\mathbf{a} = \sigma\bigl(\mathbf{W}\,\mathbf{x} + \mathbf{b}\bigr)
+\;=\;\sigma(\mathbf{z}),
+$$
+
+con $\mathbf{W}\in\mathbb{R}^{h\times m}$ donde $h$ es el número de clases.  
+
+## Regresión logística multinomial / Softmax
+
+::: columns
+
+::: {.column width="50%"}
+![6-9. Softmax para múltiples clases](presentacion_files/55.png){width="100%"}
+:::
+
+::: {.column width="50%" style="font-size:0.6em"}
+- Calculamos los **logits**:  
+  $$
+  z_k = \sum_{i=1}^m w_{k,i}\,x_i + b_k,\quad k=1,\dots,h.
+  $$
+- Aplicamos la función **Softmax** para obtener probabilidades mutuamente excluyentes:
+  $$
+  a_k = \frac{e^{z_k}}{\sum_{j=1}^h e^{z_j}},\quad 
+  \sum_{k=1}^h a_k = 1.
+  $$
+- La etiqueta predicha es  
+  $$
+  \hat y = \arg\max_{k}\,a_k.
+  $$
+:::
+
+:::
+
+#  Codificación OneHot y entropía cruzada multiclase
+
+## Activación Softmax
+
+Para clasificar en $h$ categorías, definimos la probabilidad de la clase $t$ como:
+
+$$
+P\bigl(y=t \mid \mathbf z^{[i]}\bigr)
+= \sigma_{\text{softmax}}\bigl(z^{[i]}_t\bigr)
+= \frac{e^{\,z^{[i]}_t}}{\displaystyle\sum_{j=1}^h e^{\,z^{[i]}_j}},
+\quad
+t\in\{1,\dots,h\}.
+$$
+
+En esencia, Softmax aplica una función exponencial y normaliza las activaciones para que sumen 1.
+
+## Codificación One-Hot necesaria
+
+::: columns
+
+::: {.column width="50%"}
+![6-10. One-Hot Encoding](presentacion_files/56.png){width="100%"}
+:::
+
+::: {.column width="50%" style="font-size:0.7em"}
+Para entrenar con entropía cruzada multiclase, es preciso convertir cada etiqueta discreta $y\in\{0,\dots,K-1\}$ 
+en un vector binario de longitud $K$ con un único 1 en la posición de la clase, y 0 en las demás.
+:::
+
+:::
+
+## Función de pérdida
+
+**Entropía cruzada multiclase**  
+Para $h$ categorías diferentes, asumiendo etiquetas codificadas en One-Hot:
+
+$$
+\mathcal{L}
+= \sum_{i=1}^n \sum_{j=1}^h 
+  -\,y_j^{(i)} \,\log\bigl(a_j^{(i)}\bigr).
+$$ 
+
+_Esto asume que las etiquetas están codificadas en One-Hot._  
+
+<div style="font-size:60%;">
+
+## Función de pérdida: de binaria a multiclase
+
+**Entropía cruzada binaria**  
+Para $n$ ejemplos y etiquetas $y\in\{0,1\}$:
+
+$$
+\mathcal{L}_{\text{binary}}
+= -\sum_{i=1}^n\Bigl[y^{(i)}\log\bigl(a^{(i)}\bigr)
++ \bigl(1 - y^{(i)}\bigr)\log\bigl(1 - a^{(i)}\bigr)\Bigr].
+$$ 
+
+**Entropía cruzada multiclase**  
+Para $h$ clases mutuamente excluyentes y etiquetas codificadas en One-Hot:
+
+$$
+\mathcal{L}
+= -\sum_{i=1}^n\sum_{j=1}^h y_j^{(i)}\;\log\bigl(a_j^{(i)}\bigr).
+$$ 
+
+> **¿Por qué la segunda generaliza la primera?**  
+> Con One-Hot, cada vector $\mathbf y^{(i)}$ tiene un único 1 en la clase verdadera y ceros en las demás,  
+> por lo que la suma sobre $j$ recupera exactamente los dos términos de la versión binaria cuando $h=2$.
+
+</div>
+
+<div style="font-size:90%;">
+
+## Ejemplo de función de pérdida de entropía cruzada
+
+Dado un conjunto de 4 ejemplos y 3 clases:
+
+$$
+Y_{\rm onehot}
+=
+\begin{bmatrix}
+1 & 0 & 0\\
+0 & 1 & 0\\
+0 & 0 & 1\\
+0 & 0 & 1
+\end{bmatrix},
+\quad
+A_{\rm softmax}
+=
+\begin{bmatrix}
+0.3792 & 0.3104 & 0.3104\\
+0.3072 & 0.4147 & 0.2780\\
+0.4263 & 0.2248 & 0.3490\\
+0.2668 & 0.2978 & 0.4354
+\end{bmatrix}.
+$$
+
+*(4 ejemplos de entrenamiento, 3 clases)*
+
+
+</div>
+
+---
+
+![6_11. One-Hot y Softmax (ejemplo 1)](presentacion_files/57.png){width="100%"}
+---
+
+![6_12. One-Hot y Softmax (ejemplo 1)](presentacion_files/58.png){width="100%"}
+---
+
+![6_13. One-Hot y Softmax (ejemplo 1)](presentacion_files/59.png){width="100%"}
+
+## función de pérdida de entropía cruzada (Actividad 3) 
+
+1. Explicar el siguiente código
+
+[logistic-regression.ipynb](https://colab.research.google.com/drive/1EgU_lIgT_bMtozH2awxes-zLRaXUv-iG?authuser=1#scrollTo=GnAQd5Q3reHW)
+
+# Regla de aprendizaje de regresión softmax
+
+## "El mismo concepto general se aplica…"
+
+::: columns
+
+::: {.column width="40%"}
+Queremos calcular los gradientes:
+$$
+\frac{\partial \mathcal{L}}{\partial w_i}
+\quad\text{y}\quad
+\frac{\partial \mathcal{L}}{\partial b}.
+$$
+:::
+
+::: {.column width="60%" style="font-size:0.9em"}
+
+
+Usando la regla de la cadena:
+$$
+\frac{\partial \mathcal{L}}{\partial w_i}
+= \frac{\partial \mathcal{L}}{\partial a}\;\frac{da}{dz}\;\frac{\partial z}{\partial w_i},
+\\
+\frac{\partial \mathcal{L}}{\partial b}
+= \frac{\partial \mathcal{L}}{\partial a}\;\frac{da}{dz}\;\frac{\partial z}{\partial b}.
+$$
+:::
+
+:::
+
+
+## Esquema de Regresión Softmax
+
+::: columns
+
+::: {.column width="50%"}
+![6-14. Esquema Softmax](presentacion_files/60.png){width="100%"}
+:::
+
+::: {.column width="40%" style="font-size:0.7em"}
+- **Un solo nivel**, sin capas ocultas: cada $z_k$ es un logit.  
+- **Logits**:  
+  $$
+    z_k = \sum_{i} w_{k,i}\,x_i + b_k,\qquad k=1,\dots,h.
+  $$
+- **Softmax** aplica función exponencial y normaliza:
+  $$
+    a_k = \frac{e^{z_k}}{\sum_j e^{z_j}}.
+  $$
+- La pérdida $\mathcal{L}(a,y)$ se calcula sobre las activaciones $a_k$.  
+:::
+
+:::
+
+## Softmax Regression: Regla de aprendizaje
+
+::: columns
+
+::: {.column width="50%"}
+![6-15. Esquema Softmax (bias no mostrado)](presentacion_files/61.png){width="100%"}
+:::
+
+::: {.column width="50%" style="font-size:0.5em"}
+La derivada de la pérdida respecto al peso $w_{1,2}$ suma las contribuciones de ambos canales de salida ($a_1$ y $a_2$):
+
+$$
+\frac{\partial \mathcal{L}}{\partial w_{1,2}}
+=
+\underbrace{\frac{\partial \mathcal{L}}{\partial a_1}}_{-\frac{y_1}{a_1}}
+\;\times\;
+\underbrace{\frac{\partial a_1}{\partial z_1}}_{a_1(1 - a_1)}
+\;\times\;
+\underbrace{\frac{\partial z_1}{\partial w_{1,2}}}_{x_2}
+\;+\;
+\underbrace{\frac{\partial \mathcal{L}}{\partial a_2}}_{-\frac{y_2}{a_2}}
+\;\times\;
+\underbrace{\frac{\partial a_2}{\partial z_1}}_{-\,a_2\,a_1}
+\;\times\;
+\underbrace{\frac{\partial z_1}{\partial w_{1,2}}}_{x_2}\,.
+$$
+:::
+
+:::
+
+---
+
+::: columns
+
+::: {.column width="40%"}
+Partimos de la definición de la pérdida por entropía cruzada:
+$$
+\mathcal{L}
+= -\sum_{j=1}^{h} y_j \,\log(a_j).
+$$
+Para $a_1$:
+:::
+
+::: {.column width="60%" style="font-size:0.7em"}
+
+
+$$
+\frac{\partial \mathcal{L}}{\partial a_1}
+= \frac{\partial}{\partial a_1}\Bigl[-y_1\log(a_1)\Bigr]\\
+= -\,y_1\;\frac{1}{a_1}
+= -\,\frac{y_1}{a_1}.
+$$
+:::
+
+:::
+
+---
+
+::: columns
+
+::: {.column width="40%" style="font-size:0.5em"}
+Para la activación softmax
+$$
+a_1 = \frac{e^{z_1}}{\sum_{j=1}^h e^{z_j}},
+$$
+aplicamos la **regla del cociente**:
+:::
+
+::: {.column width="60%" style="font-size:0.6em"}
+
+$$
+\frac{\partial a_1}{\partial z_1}
+= \frac{
+  \bigl(\sum_{j}e^{z_j}\bigr)\,e^{z_1}
+  - e^{z_1}\,\frac{\partial}{\partial z_1}\bigl(\sum_{j}e^{z_j}\bigr)
+}{\bigl(\sum_{j}e^{z_j}\bigr)^2}\\
+= \frac{e^{z_1}\,\bigl(\sum_{j}e^{z_j}-e^{z_1}\bigr)}{\bigl(\sum_{j}e^{z_j}\bigr)^2}
+= a_1\,(1 - a_1).
+$$
+:::
+
+:::
+
+---
+
+::: columns
+
+::: {.column width="40%" style="font-size:0.6em"}
+Para la activación softmax
+$$
+a_2 = \frac{e^{z_2}}{\sum_{j=1}^h e^{z_j}},
+$$
+aplicamos la **regla del cociente** como antes, pero notamos que $\tfrac{\partial}{\partial z_1} e^{z_2}=0$:
+:::
+
+::: {.column width="60%" style="font-size:0.6em"}
+
+$$
+\frac{\partial a_2}{\partial z_1}
+= \frac{
+  0 \cdot \sum_j e^{z_j}
+  - e^{z_2}\,\frac{\partial}{\partial z_1}\bigl(\sum_j e^{z_j}\bigr)
+}{\bigl(\sum_j e^{z_j}\bigr)^2} \\
+= \frac{-e^{z_2}\,e^{z_1}}{\bigl(\sum_j e^{z_j}\bigr)^2}
+= -\,\frac{e^{z_2}}{\sum_j e^{z_j}}\;\frac{e^{z_1}}{\sum_j e^{z_j}}
+= -\,a_2\,a_1.
+$$
+:::
+
+:::
+
+## Derivada de $z_1$ respecto a $w_{1,2}$
+
+Como $z_1 = w_{1,2}\,x_2 + b$, su derivada parcial respecto a $w_{1,2}$ es
+$$
+\frac{\partial z_1}{\partial w_{1,2}}
+= \frac{\partial}{\partial w_{1,2}}\bigl(w_{1,2}\,x_2 + b\bigr)
+= x_2.
+$$
+
+## Derivación de la Regla de Aprendizaje para Softmax
+
+::: columns
+
+::: {.column width="50%" style="font-size:0.5em"}
+![6-15. Esquema de Softmax Regression](presentacion_files/62.png){width="100%"}
+$$
+\frac{\partial \mathcal{L}}{\partial w_{1,2}}
+= \frac{\partial \mathcal{L}}{\partial a_1}\,\frac{\partial a_1}{\partial z_1}\,\frac{\partial z_1}{\partial w_{1,2}}
+\;+\;
+\frac{\partial \mathcal{L}}{\partial a_2}\,\frac{\partial a_2}{\partial z_1}\,\frac{\partial z_1}{\partial w_{1,2}}
+$$
+
+:::
+
+::: {.column width="50%" style="font-size:0.5em"}
+**Regla de la cadena multivariable**  
+Sustituyendo cada término:
+$$
+\begin{aligned}
+\frac{\partial \mathcal{L}}{\partial a_1}
+&= -\frac{y_1}{a_1}, 
+&\quad
+\frac{\partial a_1}{\partial z_1}
+&= a_1\,(1 - a_1), 
+&\quad
+\frac{\partial z_1}{\partial w_{1,2}}
+&= x_2,\\[6pt]
+\frac{\partial \mathcal{L}}{\partial a_2}
+&= -\frac{y_2}{a_2}, 
+&\quad
+\frac{\partial a_2}{\partial z_1}
+&= -\,a_2\,a_1, 
+&\quad
+\frac{\partial z_1}{\partial w_{1,2}}
+&= x_2.
+\end{aligned}
+$$
+
+Por lo tanto,
+$$
+\frac{\partial \mathcal{L}}{\partial w_{1,2}}
+= \Bigl(-\tfrac{y_1}{a_1}\,a_1(1-a_1) + -\tfrac{y_2}{a_2}(-a_2a_1)\Bigr)\,x_2
+= -\bigl(y_1 - a_1\bigr)\,x_2.
+$$
+:::
+
+:::
+
+## Softmax Regression Sketch
+
+::: columns
+
+::: {.column width="50%"}
+![6-15. Esquema de Softmax Regression](presentacion_files/62.png){width="100%"}
+:::
+
+::: {.column width="50%" style="font-size:0.9em"}
+**Forma vectorizada de la regla de gradiente**  
+$$
+\boxed{
+\nabla_{\mathbf W}\,\mathcal{L}
+\;=\;
+-\bigl(\mathbf X^{\!\top}\,(\mathbf Y - \mathbf A)\bigr)^{\!\top}
+}
+$$
+donde  
+-  $\mathbf W\in\mathbb R^{h\times m}$ (pesos)  
+-  $\mathbf X\in\mathbb R^{n\times m}$ (diseño)  
+-  $\mathbf A\in\mathbb R^{n\times h}$ (activaciones softmax)  
+- $\mathbf Y\in\mathbb R^{n\times h}$ (labels one-hot)  
+:::
+
+:::
+
+# Ejemplo de código de regresión softmax (Actividad 4) 
+
+1. Explicar el siguiente código
+
+![6-15. Esquema de Softmax Regression](presentacion_files/62.png){width="100%"}
+
+[softmax-regression_scratch.ipynb](https://colab.research.google.com/drive/17C57OcyUSgVfFiOV-KQQlPiC9qVk4zkS?authuser=1#scrollTo=A4P4MlnWW_aW)
+
+[softmax-regression-mnist.ipynb](https://colab.research.google.com/drive/13gJkalIBa5qyxpL5YSq005vRcnOf0F_2?authuser=1#scrollTo=iNtNQybCYhSf)
+
+# Referencias
+
+::: {style="font-size:80%;"}
+1.  Definición informal de ML.\
+2.  Definición de IA.\
+3.  Definición formal de ML (Tom Mitchell).\
+4.  Minsky, M. & Papert, S. (1969). *Perceptrons*. MIT Press.\
+5.  Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). *Learning representations by back-propagating errors*. Nature, 323(6088), 533–536.\
+6.  LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). *Gradient-based learning applied to document recognition*. Proceedings of the IEEE, 86(11), 2278–2324.\
+7.  Hubel, D. H., & Wiesel, T. N. (1962). *Receptive fields, binocular interaction and functional architecture in the cat's visual cortex*. Journal of Physiology, 160, 106–154.\
+8.  Krizhevsky, A., Sutskever, I., & Hinton, G. E. (2012). *ImageNet classification with deep convolutional neural networks*. NeurIPS.\
+9.  He, K., Zhang, X., Ren, S., & Sun, J. (2016). *Deep residual learning for image recognition*. CVPR.\
+10. Material y figuras extraídos de: *Complemento Capítulo 3: Introduction to Deep Learning* :contentReference[oaicite:6]{index="6"}.
+
+© Harsh Bhasin 2024\
+H. Bhasin, *Hands-on Deep Learning*, [DOI:10.1007/979-8-8688-1035-0_1](https://doi.org/10.1007/979-8-8688-1035-0_1) \`\`\`
+
+:::
