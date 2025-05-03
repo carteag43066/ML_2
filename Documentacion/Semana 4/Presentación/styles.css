@@ -1,0 +1,81 @@
+/* Elimina esta regla duplicada y sin selector */
+/* transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); */
+
+.shared-img {
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1); /* Movida aquí */
+  transform-style: flat; /* Mejor que preserve-3d para superposiciones */
+}
+
+.reveal-viewport {
+  position: relative;
+  z-index: 0;
+  overflow: visible !important; /* Añadido para prevenir recortes */
+}
+
+.reveal-viewport::before {
+  content: "";
+  position: absolute; /* Cambiado de fixed a absolute */
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url('edificio.png') center/cover no-repeat !important; /* Añade la imagen de fondo */
+  opacity: 0.5;
+  z-index: -1;
+}
+
+.stack-container {
+  isolation: isolate;
+  position: relative;
+  min-height: 400px; /* Añadido para espacio mínimo */
+}
+
+.stack-container .pup {
+  position: absolute;
+  bottom: 0;
+  width: 200px;
+  transition: transform 0.8s ease-in-out;
+  z-index: 100; /* Añadido para control de capas */
+}
+
+/* Reglas mejoradas para fragmentos visibles */
+.fragment.visible.pup1 {
+  transform: rotateX(25deg) translateY(-80px) translateZ(80px);
+  z-index: 101 !important;
+}
+
+.fragment.visible.pup2 {
+  transform: rotateX(25deg) translateY(-60px) translateZ(50px);
+  z-index: 102 !important;
+}
+
+.fragment.visible.pup3 {
+  transform: rotateX(25deg) translateY(-40px) translateZ(20px);
+  z-index: 103 !important;
+}
+
+section.moved .pup {
+  transform: translateX(-350px) scale(0.5);
+  z-index: 99 !important; /* Asegurar capa inferior */
+}
+
+/* Reglas para superposición garantizada */
+.img-overlay {
+  position: absolute;
+  z-index: 9999 !important; /* Valor máximo seguro */
+  transform-style: flat;
+  will-change: transform, opacity;
+  backface-visibility: hidden; /* Añadido para rendimiento */
+}
+
+.reveal .slides {
+  transform-style: flat !important; /* Desactiva transformaciones 3D conflictivas */
+  z-index: 100 !important;
+}
+
+.fullscreen-container {
+  position: relative !important;
+  z-index: 50;
+  transform: none !important; /* Elimina transformaciones heredadas */
+}

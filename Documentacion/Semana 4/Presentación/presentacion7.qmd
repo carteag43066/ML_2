@@ -1,0 +1,299 @@
+---
+title: "Presentación 7: Redes Neuronales"
+subtitle: "*Machine Learning II*"
+author: "*Jose Alexander Fuentes Montoya Ph.D(c)*"
+format:
+  revealjs:
+    theme: "black"
+    slideNumber: "c/t"
+    transition: "convex"
+    transition-speed: "fast"
+    center: false
+    incremental: true
+    plugins: ["notes", "highlight", "math", "search", "zoom", "animate"]
+    backgroundTransition: "zoom"
+    animate:
+      autoplay: false
+    fragmentInURL: true
+    history: true
+    css: "styles.css"
+title-slide-attributes:
+  data-background-image: "logo.png"
+  data-background-size: "10%"
+  data-background-position: "90% 10%"
+  data-background-opacity: "0.4"
+  data-transition: "zoom"
+---
+
+```{=html}
+<style>
+/* Sistema de capas mejorado */
+:root {
+  --z-background: -1;
+  --z-base-content: 1;
+  --z-overlay: 1000;
+}
+
+/* Corrección del contexto de apilamiento */
+.reveal-viewport {
+  position: relative;
+  z-index: var(--z-base-content);
+  overflow: visible !important;
+}
+
+.reveal-viewport::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: inherit;
+  opacity: 0.5;
+  z-index: var(--z-background);
+}
+
+/* Contenedor de imágenes */
+.img-effect-container {
+  position: relative;
+  width: 100%;
+  height: 700px;
+  isolation: isolate;
+}
+
+/* Imagen base */
+.img-base {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 80%;
+  max-height: 80%;
+  z-index: var(--z-base-content);
+  filter: brightness(0.95);
+}
+
+/* Imagen superpuesta - Solución definitiva */
+.img-overlay {
+  position: absolute;
+  z-index: var(--z-overlay) !important;
+  right: 5%;
+  top: 50%;
+  transform: translateY(-50%) scale(1.2);
+  width: 45%;
+  box-shadow: 0 0 35px rgba(0,0,0,0.7);
+  border: 4px solid rgba(255,255,255,0.9);
+  border-radius: 12px;
+  opacity: 0;
+  transition: all 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: hidden;
+}
+
+/* Animación de entrada mejorada */
+.fragment.visible .img-overlay {
+  opacity: 1;
+  right: 12%;
+  transform: translateY(-50%) scale(1);
+}
+</style>
+
+<script>
+// Inicialización mejorada
+Reveal.on('ready', () => {
+  document.querySelectorAll('.img-overlay').forEach(img => {
+    img.style.willChange = 'transform, opacity, right';
+  });
+});
+</script>
+```
+
+
+
+
+# Redes Neuronales
+
+<div style="font-size:80%;">
+# Visión general de la lección
+
+1. Introducción 
+2. Funcionamiento de una red Convolucionada
+3. Ejemplo Red Neuronal Convolucionada 
+ 
+
+</div>
+
+# Redes Neuronales Convolucionales
+
+
+## Introducción
+
+
+![Figura 7-1.](presentacion_files/66.png){.r-stretch data-transition="fade-in slide-out"}
+
+## Desarrollo e impacto en la visión computacional
+
+![Figura 7-2.](presentacion_files/67.png)
+
+## Detección y reconocimiento facial
+
+![Figura 7-3.](presentacion_files/68.png)
+
+## Conducción automática
+
+![Figura 7-4.](presentacion_files/69.png)
+
+## Implementación en la medicina y la salud
+
+![Figura 7-5.](presentacion_files/70.png)
+
+## Problemas 
+
+![Figura 7-5.](presentacion_files/99.png)
+
+## Ejemplo
+
+
+![Figura 7-6.](presentacion_files/64.png)
+
+---
+
+![Figura 7-7.](presentacion_files/65.png)
+
+---
+
+![Figura 7-7.](presentacion_files/71.png)
+---
+
+![Figura 7-7.](presentacion_files/72.png)
+
+## Mapa de Características
+
+![Figura 7-8.](presentacion_files/73.png)
+
+---
+
+![Figura 7-8.](presentacion_files/74.png)
+---
+
+![Figura 7-8.](presentacion_files/75.png)
+
+---
+
+![Figura 7-9.](presentacion_files/76.png)
+---
+
+![Figura 7-9.](presentacion_files/77.png)
+
+## Operación de Convolución
+
+![Figura 7-8.](presentacion_files/78.png)
+
+---
+
+![Figura 7-9.](presentacion_files/79.png)
+
+---
+
+![Figura 7-9.](presentacion_files/80.png)
+
+---
+
+![Figura 7-9.](presentacion_files/81.png)
+
+---
+
+![Figura 7-9.](presentacion_files/82.png)
+
+---
+
+![Figura 7-9.](presentacion_files/83.png)
+
+---
+
+![Figura 7-9.](presentacion_files/84.png)
+
+---
+
+![Figura 7-9.](presentacion_files/85.png)
+
+---
+
+![Figura 7-9.](presentacion_files/86.png)
+
+## Operación de Convolución + Activación (ReLu)
+
+![Figura 7-7.](presentacion_files/65.png)
+
+---
+
+![Figura 7-8.](presentacion_files/87.png)
+
+---
+
+![Figura 7-8.](presentacion_files/88.png)
+---
+
+![Figura 7-8.](presentacion_files/90.png)
+
+## Operación Pooling
+
+![Figura 7-8.](presentacion_files/91.png)
+
+---
+
+![Figura 7-8.](presentacion_files/92.png)
+
+---
+
+![Figura 7-8.](presentacion_files/93.png)
+
+---
+
+![Figura 7-8.](presentacion_files/94.png)
+
+---
+
+![Figura 7-8.](presentacion_files/95.png)
+
+---
+
+![](presentacion_files/96.png){width="60%"}
+
+![](presentacion_files/101.png){width="40%"}
+
+## Convolución + Activación + Pooling
+
+![Figura 7-9.](presentacion_files/97.png)
+
+---
+
+![](presentacion_files/87.png)
+
+![](presentacion_files/100.png)
+
+## Ejemplo Piedra Papel o Tijeras
+
+![Figura 7-10.](presentacion_files/98.png)
+
+## Actividad 1
+
+[clasificador_imagenes_papelpiedratijera.ipynb](https://colab.research.google.com/drive/1cnsp58yBFMR0zH4nj3nSussrW_E0v8-C?authuser=1#scrollTo=_dmBsQ9qPqLa)
+
+# Referencias
+
+::: {style="font-size:80%;"}
+1.  Definición informal de ML.\
+2.  Definición de IA.\
+3.  Definición formal de ML (Tom Mitchell).\
+4.  Minsky, M. & Papert, S. (1969). *Perceptrons*. MIT Press.\
+5.  Rumelhart, D. E., Hinton, G. E., & Williams, R. J. (1986). *Learning representations by back-propagating errors*. Nature, 323(6088), 533–536.\
+6.  LeCun, Y., Bottou, L., Bengio, Y., & Haffner, P. (1998). *Gradient-based learning applied to document recognition*. Proceedings of the IEEE, 86(11), 2278–2324.\
+7.  Hubel, D. H., & Wiesel, T. N. (1962). *Receptive fields, binocular interaction and functional architecture in the cat's visual cortex*. Journal of Physiology, 160, 106–154.\
+8.  Krizhevsky, A., Sutskever, I., & Hinton, G. E. (2012). *ImageNet classification with deep convolutional neural networks*. NeurIPS.\
+9.  He, K., Zhang, X., Ren, S., & Sun, J. (2016). *Deep residual learning for image recognition*. CVPR.\
+10. Material y figuras extraídos de: *Complemento Capítulo 3: Introduction to Deep Learning* :contentReference[oaicite:6]{index="6"}.
+
+© Harsh Bhasin 2024\
+H. Bhasin, *Hands-on Deep Learning*, [DOI:10.1007/979-8-8688-1035-0_1](https://doi.org/10.1007/979-8-8688-1035-0_1) \`\`\`
+
+:::
