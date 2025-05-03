@@ -20,6 +20,7 @@ jupyterlab = "*"
 ipykernel = "*"
 scikit-image = "^0.25.2"
 imblearn = "^0.0"
+seaborn = "^0.13.2"
 
 [build-system]
 requires = ["poetry-core"]
